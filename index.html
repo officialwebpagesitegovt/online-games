@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <title>Crash Sim Mechanics</title>
+  <style>
+    body {
+      background: #0f172a;
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .game-box {
+      background: #1e293b;
+      padding: 24px;
+      border-radius: 12px;
+      text-align: center;
+      width: 340px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    .screen {
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      font-weight: bold;
+      color: #38bdf8;
+      border: 2px dashed #334155;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .crashed { color: #ef4444; }
+    .cashed-out { color: #22c55e; }
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    #startBtn { background: #3b82f6; color: white; }
+    #cashBtn { background: #10b981; color: white; display: none; }
+    .wallet { font-size: 14px; color: #94a3b8; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+
+  <div class="game-box">
+    <div class="wallet">वर्चुअल कॉइन्स: <span id="balance">1000</span></div>
+    <div class="screen" id="display">1.00x</div>
+    
+    <button id="startBtn">राउंड शुरू करें (50 कॉइन्स)</button>
+    <button id="cashBtn">कैश आउट!</button>
+  </div>
+
+  <script>
+    let balance = 1000;
+    const betAmount = 50;
+    let crashMultiplier = 0;
+    let currentMultiplier = 1.00;
+    let startTime = 0;
+    let animationFrame;
+    let isRunning = false;
+    let hasCashedOut = false;
+
+    const display = document.getElementById('display');
+    const startBtn = document.getElementById('startBtn');
+    const cashBtn = document.getElementById('cashBtn');
+    const balanceEl = document.getElementById('balance');
+
+    // 1. क्रैश पॉइंट जनरेटर (प्रोबेबिलिटी कर्व)
+    function generateCrashPoint() {
+      const rand = Math.random();
+      // 5% इंस्टेंट क्रैश (House edge सिमुलेशन)
+      if (rand < 0.05) return 1.00;
+      
+      // इन्वर्स प्रोबेबिलिटी: छोटे नंबर बहुत आम, बड़े नंबर दुर्लभ
+      const result = 0.99 / (1 - rand);
+      return Math.max(1.00, parseFloat(result.toFixed(2)));
+    }
+
+    // 2. एनिमेशन लूप (एक्सपोनेंशियल ग्रोथ)
+    function updateGame(timestamp) {
+      if (!startTime) startTime = timestamp;
+      const elapsed = (timestamp - startTime) / 1000; // सेकंड में समय
+
+      // गणितीय फॉर्मूला: समय के साथ घातीय रूप (e^(0.06 * t)) से बढ़ना
+      currentMultiplier = parseFloat((Math.pow(Math.E, 0.06 * elapsed)).toFixed(2));
+
+      if (currentMultiplier >= crashMultiplier) {
+        // क्रैश हो गया
+        endGame(false);
+      } else {
+        if (!hasCashedOut) {
+          display.textContent = currentMultiplier.toFixed(2) + 'x';
+        }
+        animationFrame = requestAnimationFrame(updateGame);
+      }
+    }
+
+    // 3. राउंड शुरू करना
+    startBtn.addEventListener('click', () => {
+      if (balance < betAmount) {
+        alert("कॉइन्स खत्म हो गए!");
+        return;
+      }
+      balance -= betAmount;
+      balanceEl.textContent = balance;
+
+      crashMultiplier = generateCrashPoint();
+      currentMultiplier = 1.00;
+      startTime = 0;
+      isRunning = true;
+      hasCashedOut = false;
+
+      display.className = 'screen';
+      display.textContent = '1.00x';
+
+      startBtn.style.display = 'none';
+      cashBtn.style.display = 'block';
+
+      animationFrame = requestAnimationFrame(updateGame);
+    });
+
+    // 4. कैश आउट लॉजिक
+    cashBtn.addEventListener('click', () => {
+      if (!isRunning || hasCashedOut) return;
+      hasCashedOut = true;
+
+      const winnings = Math.floor(betAmount * currentMultiplier);
+      balance += winnings;
+      balanceEl.textContent = balance;
+
+      display.classList.add('cashed-out');
+      display.textContent = `सेव: ${currentMultiplier.toFixed(2)}x (+${winnings})`;
+      cashBtn.style.display = 'none';
+    });
+
+    // 5. गेम खत्म होने का लॉजिक
+    function endGame(won) {
+      cancelAnimationFrame(animationFrame);
+      isRunning = false;
+
+      if (!hasCashedOut) {
+        display.classList.add('crashed');
+        display.textContent = `क्रैश @ ${crashMultiplier.toFixed(2)}x`;
+      }
+
+      cashBtn.style.display = 'none';
+      startBtn.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
