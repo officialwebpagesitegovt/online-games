@@ -2,161 +2,387 @@
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
-  <title>Crash Sim Mechanics</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arena Play - 3-in-1 Mini Gaming Hub</title>
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
     body {
+      background: #0b0f19;
+      color: #f8fafc;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      background: #111827;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 40px rgba(0,0,0,0.8);
+      position: relative;
+    }
+
+    /* TOP HEADER */
+    header {
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1f2937;
+      border-bottom: 1px solid #374151;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .brand {
+      font-size: 20px;
+      font-weight: 900;
+      background: linear-gradient(90deg, #f59e0b, #ef4444);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 0.5px;
+    }
+    .wallet-pill {
       background: #0f172a;
-      color: #fff;
-      font-family: sans-serif;
+      border: 1px solid #eab308;
+      padding: 6px 14px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: bold;
+      font-size: 14px;
+      color: #facc15;
+    }
+
+    /* CONTENT AREA */
+    .content {
+      padding: 20px;
+      flex: 1;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #9ca3af;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* GAME CARDS */
+    .games-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .game-card {
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .game-card:hover {
+      transform: translateY(-2px);
+      border-color: #6366f1;
+    }
+    .game-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .game-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+    }
+    .icon-quiz { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+    .icon-ludo { background: linear-gradient(135deg, #10b981, #047857); }
+    .icon-carrom { background: linear-gradient(135deg, #f59e0b, #b45309); }
+
+    .game-meta h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .game-meta p {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    .play-btn {
+      background: #6366f1;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .play-btn:hover { background: #4f46e5; }
+
+    /* VIEW SCREENS */
+    .view-panel {
+      display: none;
+      padding: 20px;
+      animation: fadeIn 0.2s ease-in;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .back-btn {
+      background: none;
+      border: 1px solid #4b5563;
+      color: #9ca3af;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+
+    /* QUIZ GAME INTERFACE */
+    .quiz-box {
+      background: #1f2937;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+    .timer-bar {
+      font-size: 14px;
+      color: #ef4444;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+    .quiz-question {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      min-height: 50px;
+    }
+    .options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .opt-btn {
+      background: #374151;
+      border: 1px solid #4b5563;
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .opt-btn:hover { background: #4b5563; }
+    .status-msg {
+      margin-top: 14px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    /* PLACEHOLDERS */
+    .canvas-box {
+      border: 2px dashed #4b5563;
+      border-radius: 12px;
+      height: 320px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      margin: 0;
+      color: #9ca3af;
+      gap: 10px;
     }
-    .game-box {
-      background: #1e293b;
-      padding: 24px;
-      border-radius: 12px;
-      text-align: center;
-      width: 340px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    }
-    .screen {
-      height: 140px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 42px;
-      font-weight: bold;
-      color: #38bdf8;
-      border: 2px dashed #334155;
-      border-radius: 8px;
-      margin-bottom: 20px;
-    }
-    .crashed { color: #ef4444; }
-    .cashed-out { color: #22c55e; }
-    button {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      font-weight: bold;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 8px;
-    }
-    #startBtn { background: #3b82f6; color: white; }
-    #cashBtn { background: #10b981; color: white; display: none; }
-    .wallet { font-size: 14px; color: #94a3b8; margin-bottom: 12px; }
   </style>
 </head>
 <body>
 
-  <div class="game-box">
-    <div class="wallet">वर्चुअल कॉइन्स: <span id="balance">1000</span></div>
-    <div class="screen" id="display">1.00x</div>
-    
-    <button id="startBtn">राउंड शुरू करें (50 कॉइन्स)</button>
-    <button id="cashBtn">कैश आउट!</button>
+  <div class="app-container">
+    <!-- Header -->
+    <header>
+      <div class="brand">ARENA PLAY</div>
+      <div class="wallet-pill">
+        <span>🪙</span> <span id="coinBalance">500</span>
+      </div>
+    </header>
+
+    <!-- 1. HUB / HOME VIEW -->
+    <div id="homeView" class="content">
+      <div class="section-title">लाइव मुकाबले (1v1 Games)</div>
+      
+      <div class="games-grid">
+        <!-- Game 1: Quiz Clash -->
+        <div class="game-card">
+          <div class="game-info">
+            <div class="game-icon icon-quiz">⚡</div>
+            <div class="game-meta">
+              <h3>Fastest Quiz 1v1</h3>
+              <p>एंट्री: 50 कॉइन्स | विन: 90 कॉइन्स</p>
+            </div>
+          </div>
+          <button class="play-btn" onclick="startQuizGame()">खेलें</button>
+        </div>
+
+        <!-- Game 2: Speed Ludo -->
+        <div class="game-card">
+          <div class="game-info">
+            <div class="game-icon icon-ludo">🎲</div>
+            <div class="game-meta">
+              <h3>Speed Ludo Roll</h3>
+              <p>एंट्री: 50 कॉइन्स | विन: 90 कॉइन्स</p>
+            </div>
+          </div>
+          <button class="play-btn" onclick="openScreen('ludoView')">खेलें</button>
+        </div>
+
+        <!-- Game 3: Carrom Board -->
+        <div class="game-card">
+          <div class="game-info">
+            <div class="game-icon icon-carrom">🎯</div>
+            <div class="game-meta">
+              <h3>2D Carrom Striker</h3>
+              <p>एंट्री: 50 कॉइन्स | विन: 90 कॉइन्स</p>
+            </div>
+          </div>
+          <button class="play-btn" onclick="openScreen('carromView')">खेलें</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. QUIZ GAME SCREEN (Working Prototype) -->
+    <div id="quizView" class="view-panel">
+      <button class="back-btn" onclick="openScreen('homeView')">← लॉबी में वापस जाएं</button>
+      
+      <div class="quiz-box">
+        <div class="timer-bar" id="quizTimer">समय: 10s</div>
+        <div class="quiz-question" id="quizQuestionText">सवाल लोड हो रहा है...</div>
+        
+        <div class="options-grid" id="optionsContainer"></div>
+        <div class="status-msg" id="quizStatus"></div>
+      </div>
+    </div>
+
+    <!-- 3. LUDO SCREEN (Placeholder View) -->
+    <div id="ludoView" class="view-panel">
+      <button class="back-btn" onclick="openScreen('homeView')">← लॉबी में वापस जाएं</button>
+      <div class="canvas-box">
+        <span style="font-size: 40px;">🎲</span>
+        <h3>Speed Ludo बोर्ड</h3>
+        <p>लॉजिक और डाइस रोलर यहाँ लोड होगा</p>
+      </div>
+    </div>
+
+    <!-- 4. CARROM SCREEN (Placeholder View) -->
+    <div id="carromView" class="view-panel">
+      <button class="back-btn" onclick="openScreen('homeView')">← लॉबी में वापस जाएं</button>
+      <div class="canvas-box">
+        <span style="font-size: 40px;">🎯</span>
+        <h3>Carrom 2D Physics बोर्ड</h3>
+        <p>कैनवास स्ट्राइकर यहाँ लोड होगा</p>
+      </div>
+    </div>
   </div>
 
   <script>
-    let balance = 1000;
-    const betAmount = 50;
-    let crashMultiplier = 0;
-    let currentMultiplier = 1.00;
-    let startTime = 0;
-    let animationFrame;
-    let isRunning = false;
-    let hasCashedOut = false;
+    let coins = 500;
+    const entryFee = 50;
+    const winReward = 90;
 
-    const display = document.getElementById('display');
-    const startBtn = document.getElementById('startBtn');
-    const cashBtn = document.getElementById('cashBtn');
-    const balanceEl = document.getElementById('balance');
+    const coinBalanceEl = document.getElementById('coinBalance');
+    const homeView = document.getElementById('homeView');
+    const quizView = document.getElementById('quizView');
+    const ludoView = document.getElementById('ludoView');
+    const carromView = document.getElementById('carromView');
 
-    // 1. क्रैश पॉइंट जनरेटर (प्रोबेबिलिटी कर्व)
-    function generateCrashPoint() {
-      const rand = Math.random();
-      // 5% इंस्टेंट क्रैश (House edge सिमुलेशन)
-      if (rand < 0.05) return 1.00;
-      
-      // इन्वर्स प्रोबेबिलिटी: छोटे नंबर बहुत आम, बड़े नंबर दुर्लभ
-      const result = 0.99 / (1 - rand);
-      return Math.max(1.00, parseFloat(result.toFixed(2)));
+    function openScreen(screenId) {
+      homeView.style.display = 'none';
+      quizView.style.display = 'none';
+      ludoView.style.display = 'none';
+      carromView.style.display = 'none';
+
+      document.getElementById(screenId).style.display = 'block';
     }
 
-    // 2. एनिमेशन लूप (एक्सपोनेंशियल ग्रोथ)
-    function updateGame(timestamp) {
-      if (!startTime) startTime = timestamp;
-      const elapsed = (timestamp - startTime) / 1000; // सेकंड में समय
+    // --- QUIZ LOGIC (Fastest Finger First Sim) ---
+    const quizQuestions = [
+      { q: "भारत की राजधानी क्या है?", options: ["मुंबई", "नई दिल्ली", "जयपुर", "कोलकाता"], answer: 1 },
+      { q: "दुनिया का सबसे तेज़ दौड़ने वाला जानवर कौन सा है?", options: ["शेर", "चीता", "घोड़ा", "हिरण"], answer: 1 },
+      { q: "कंप्यूटर का दिमाग किसे कहा जाता है?", options: ["RAM", "Monitor", "CPU", "Hard Disk"], answer: 2 }
+    ];
 
-      // गणितीय फॉर्मूला: समय के साथ घातीय रूप (e^(0.06 * t)) से बढ़ना
-      currentMultiplier = parseFloat((Math.pow(Math.E, 0.06 * elapsed)).toFixed(2));
+    let timerInterval;
 
-      if (currentMultiplier >= crashMultiplier) {
-        // क्रैश हो गया
-        endGame(false);
-      } else {
-        if (!hasCashedOut) {
-          display.textContent = currentMultiplier.toFixed(2) + 'x';
-        }
-        animationFrame = requestAnimationFrame(updateGame);
-      }
-    }
-
-    // 3. राउंड शुरू करना
-    startBtn.addEventListener('click', () => {
-      if (balance < betAmount) {
-        alert("कॉइन्स खत्म हो गए!");
+    function startQuizGame() {
+      if (coins < entryFee) {
+        alert("कॉइन्स खत्म हो गए हैं!");
         return;
       }
-      balance -= betAmount;
-      balanceEl.textContent = balance;
+      coins -= entryFee;
+      coinBalanceEl.textContent = coins;
+      openScreen('quizView');
 
-      crashMultiplier = generateCrashPoint();
-      currentMultiplier = 1.00;
-      startTime = 0;
-      isRunning = true;
-      hasCashedOut = false;
+      const randomQ = quizQuestions[Math.floor(Math.random() * quizQuestions.length)];
+      document.getElementById('quizQuestionText').textContent = randomQ.q;
+      document.getElementById('quizStatus').textContent = "";
+      
+      const optContainer = document.getElementById('optionsContainer');
+      optContainer.innerHTML = "";
 
-      display.className = 'screen';
-      display.textContent = '1.00x';
+      randomQ.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'opt-btn';
+        btn.textContent = `${idx + 1}. ${opt}`;
+        btn.onclick = () => submitAnswer(idx === randomQ.answer);
+        optContainer.appendChild(btn);
+      });
 
-      startBtn.style.display = 'none';
-      cashBtn.style.display = 'block';
+      let timeLeft = 10;
+      document.getElementById('quizTimer').textContent = `समय: ${timeLeft}s`;
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('quizTimer').textContent = `समय: ${timeLeft}s`;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          submitAnswer(false, true);
+        }
+      }, 1000);
+    }
 
-      animationFrame = requestAnimationFrame(updateGame);
-    });
+    function submitAnswer(isCorrect, isTimeout = false) {
+      clearInterval(timerInterval);
+      const statusEl = document.getElementById('quizStatus');
+      const optButtons = document.querySelectorAll('.opt-btn');
+      optButtons.forEach(b => b.disabled = true);
 
-    // 4. कैश आउट लॉजिक
-    cashBtn.addEventListener('click', () => {
-      if (!isRunning || hasCashedOut) return;
-      hasCashedOut = true;
-
-      const winnings = Math.floor(betAmount * currentMultiplier);
-      balance += winnings;
-      balanceEl.textContent = balance;
-
-      display.classList.add('cashed-out');
-      display.textContent = `सेव: ${currentMultiplier.toFixed(2)}x (+${winnings})`;
-      cashBtn.style.display = 'none';
-    });
-
-    // 5. गेम खत्म होने का लॉजिक
-    function endGame(won) {
-      cancelAnimationFrame(animationFrame);
-      isRunning = false;
-
-      if (!hasCashedOut) {
-        display.classList.add('crashed');
-        display.textContent = `क्रैश @ ${crashMultiplier.toFixed(2)}x`;
+      if (isTimeout) {
+        statusEl.style.color = '#ef4444';
+        statusEl.textContent = "समय समाप्त! आप मैच हार गए।";
+      } else if (isCorrect) {
+        coins += winReward;
+        coinBalanceEl.textContent = coins;
+        statusEl.style.color = '#22c55e';
+        statusEl.textContent = `शानदार! सही जवाब। +${winReward} कॉइन्स मिले!`;
+      } else {
+        statusEl.style.color = '#ef4444';
+        statusEl.textContent = "गलत जवाब! आपके 50 कॉइन्स कट गए।";
       }
-
-      cashBtn.style.display = 'none';
-      startBtn.style.display = 'block';
     }
   </script>
 </body>
